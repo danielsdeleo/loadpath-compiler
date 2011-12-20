@@ -17,6 +17,13 @@ require 'rubygems'
 #
 #     ruby rbcompile.rb
 #
+#     add ~/.rbcompile/bin to your $PATH
+#
+# ==Results
+# * with:
+#     knife -h > /dev/null  0.47s user 0.07s system 93% cpu 0.569 total
+# * without:
+#     knife -h > /dev/null  2.63s user 0.17s system 97% cpu 2.869 total
 #
 
 class RbCompile
