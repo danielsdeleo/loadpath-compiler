@@ -66,7 +66,7 @@ class RbCompile
   end
 
   def self.gen_loader(dep_paths)
-    loader_code=<<-LOADER
+    <<-LOADER
 module Kernel
   RUBYGEMS = /^rubygems/
 
@@ -89,7 +89,7 @@ LOADER
 
 
   def self.gen_binary(name, load_path, dep_paths)
-    text=<<-BINFILE
+    <<-BINFILE
 #!#{Gem.ruby}
 
 #{gen_loader(dep_paths)}
@@ -102,19 +102,20 @@ BINFILE
     compiler = DepCompiler.new(gem_name)
     gems_to_link = compiler.gemspecs
     gem_dest_root = File.expand_path("~/.rbcompile/apps/#{gem_name}")
+    FileUtils.mkdir_p(gem_dest_root)
     gems_to_link.each do |gemspec|
       puts "ln -sf #{gemspec.full_gem_path} #{gem_dest_root}/#{gemspec.full_name}"
       FileUtils.ln_sf(gemspec.full_gem_path, "#{gem_dest_root}/#{gemspec.full_name}")
     end
 
-    require_paths = gems_to_link.map {|g| g.require_paths.map {|p| "#{gem_dest_root}/gems/#{g.full_name}/#{p}"}}.flatten
+    require_paths = gems_to_link.map {|g| g.require_paths.map {|p| "#{gem_dest_root}/#{g.full_name}/#{p}"}}.flatten
 
     File.open(File.expand_path("~/.rbcompile/apps/#{gem_name}/load.rb"), "w", 0644) do |f|
       f.puts gen_loader(require_paths)
     end
 
     compiler.primary_gem.executables.each do |ex|
-      executable_dest = File.expand_path("~/.rbcompile/apps/#{gem_name}/gems/#{compiler.primary_gem.full_name}/bin/#{ex}")
+      executable_dest = File.expand_path("~/.rbcompile/apps/#{gem_name}/#{compiler.primary_gem.full_name}/bin/#{ex}")
       File.open(File.expand_path("~/.rbcompile/bin/#{ex}"), "w", 0755) do |f|
         f.puts gen_binary(ex, executable_dest, require_paths)
       end
@@ -125,4 +126,4 @@ BINFILE
 
 end
 
-RbCompile.run("chef")
+RbCompile.run(ARGV[0])
